@@ -160,7 +160,7 @@ const TodoModal: React.FC<TodoModalProps> = ({ isOpen, onClose, onSave, todo }) 
       width={600}
       okText={todo ? '更新' : '添加'}
       cancelText="取消"
-      destroyOnClose
+      destroyOnHidden
     >
       <Form
         form={form}

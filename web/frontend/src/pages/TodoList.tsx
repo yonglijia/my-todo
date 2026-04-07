@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { List, Card, Tag, Button, Checkbox, Space, Empty, Spin, Segmented } from 'antd';
+import { Card, Tag, Button, Checkbox, Space, Empty, Spin, Segmented } from 'antd';
 import { PlusOutlined, CalendarOutlined, ClockCircleOutlined, EditOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import { Todo, TodoList, Tag as TagType } from '../types';
 import { apiClient } from '../utils/api';
@@ -203,83 +203,77 @@ const TodoListPage: React.FC = () => {
             )}
           </Empty>
         ) : (
-          <List
-            dataSource={filteredTodos}
-            renderItem={(todo) => {
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {filteredTodos.map((todo) => {
               const listInfo = getListInfo(todo.listId);
               const tagsInfo = getTagsInfo(todo.tags);
 
               return (
-                <List.Item
-                  actions={[
+                <div
+                  key={todo.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    padding: '16px 0',
+                    borderBottom: '1px solid #f0f0f0',
+                    opacity: todo.completed ? 0.6 : 1,
+                  }}
+                >
+                  <Checkbox
+                    checked={todo.completed}
+                    onClick={(e) => handleToggleComplete(todo, e)}
+                    style={{ marginTop: '4px', marginRight: '12px' }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      textDecoration: todo.completed ? 'line-through' : 'none',
+                      color: todo.completed ? '#8c8c8c' : '#262626',
+                      marginBottom: '4px',
+                    }}>
+                      {todo.title}
+                    </div>
+                    {todo.description && (
+                      <div style={{ marginBottom: '8px', color: '#8c8c8c', fontSize: '14px' }}>
+                        {todo.description}
+                      </div>
+                    )}
+                    <Space size={[8, 8]} wrap>
+                      {todo.dueDate && (
+                        <Tag icon={<CalendarOutlined />}>
+                          {formatDate(todo.dueDate, 'MM月dd日')}
+                        </Tag>
+                      )}
+                      {todo.startTime && (
+                        <Tag icon={<ClockCircleOutlined />}>
+                          {todo.startTime}{todo.endTime && ` - ${todo.endTime}`}
+                        </Tag>
+                      )}
+                      {getPriorityTag(todo.priority)}
+                      {listInfo && (
+                        <Tag color={listInfo.color}>{listInfo.name}</Tag>
+                      )}
+                      {tagsInfo.map(tag => (
+                        <Tag key={tag.id} color={tag.color}>{tag.name}</Tag>
+                      ))}
+                    </Space>
+                  </div>
+                  <Space>
                     <Button
-                      key="edit"
                       type="text"
                       icon={<EditOutlined />}
                       onClick={() => handleEditTodo(todo)}
-                    />,
+                    />
                     <Button
-                      key="delete"
                       type="text"
                       danger
                       icon={<DeleteOutlined />}
                       onClick={() => handleDeleteTodo(todo.id)}
-                    />,
-                  ]}
-                  style={{
-                    opacity: todo.completed ? 0.6 : 1,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <List.Item.Meta
-                    avatar={
-                      <Checkbox
-                        checked={todo.completed}
-                        onClick={(e) => handleToggleComplete(todo, e)}
-                        style={{ marginTop: '4px' }}
-                      />
-                    }
-                    title={
-                      <span style={{
-                        textDecoration: todo.completed ? 'line-through' : 'none',
-                        color: todo.completed ? '#8c8c8c' : '#262626'
-                      }}>
-                        {todo.title}
-                      </span>
-                    }
-                    description={
-                      <div>
-                        {todo.description && (
-                          <div style={{ marginBottom: '8px', color: '#8c8c8c' }}>
-                            {todo.description}
-                          </div>
-                        )}
-                        <Space size={[8, 8]} wrap>
-                          {todo.dueDate && (
-                            <Tag icon={<CalendarOutlined />}>
-                              {formatDate(todo.dueDate, 'MM月dd日')}
-                            </Tag>
-                          )}
-                          {todo.startTime && (
-                            <Tag icon={<ClockCircleOutlined />}>
-                              {todo.startTime}{todo.endTime && ` - ${todo.endTime}`}
-                            </Tag>
-                          )}
-                          {getPriorityTag(todo.priority)}
-                          {listInfo && (
-                            <Tag color={listInfo.color}>{listInfo.name}</Tag>
-                          )}
-                          {tagsInfo.map(tag => (
-                            <Tag key={tag.id} color={tag.color}>{tag.name}</Tag>
-                          ))}
-                        </Space>
-                      </div>
-                    }
-                  />
-                </List.Item>
+                    />
+                  </Space>
+                </div>
               );
-            }}
-          />
+            })}
+          </div>
         )}
       </Card>
 

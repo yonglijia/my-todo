@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { List, Card, Tag, Button, Checkbox, Empty, Spin } from 'antd';
+import { Card, Tag, Button, Checkbox, Empty, Spin, Space } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Todo, TodoList } from '../types';
 import { apiClient } from '../utils/api';
@@ -142,35 +142,44 @@ const ListPage: React.FC = () => {
             </Button>
           </Empty>
         ) : (
-          <List
-            dataSource={todos}
-            renderItem={(todo) => (
-              <List.Item
-                actions={[
-                  <Button key="edit" type="text" icon={<EditOutlined />} onClick={() => handleEditTodo(todo)} />,
-                  <Button key="delete" type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteTodo(todo.id)} />,
-                ]}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {todos.map((todo) => (
+              <div
+                key={todo.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  padding: '16px 0',
+                  borderBottom: '1px solid #f0f0f0',
+                  opacity: todo.completed ? 0.6 : 1,
+                }}
               >
-                <List.Item.Meta
-                  avatar={
-                    <Checkbox
-                      checked={todo.completed}
-                      onChange={() => handleToggleComplete(todo)}
-                    />
-                  }
-                  title={<span style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>{todo.title}</span>}
-                  description={
-                    <Space>
-                      {todo.description && <span>{todo.description}</span>}
-                      <Tag color={todo.priority === 'high' ? 'red' : todo.priority === 'medium' ? 'blue' : 'green'}>
-                        {todo.priority === 'high' ? '高' : todo.priority === 'medium' ? '中' : '低'}
-                      </Tag>
-                    </Space>
-                  }
+                <Checkbox
+                  checked={todo.completed}
+                  onChange={() => handleToggleComplete(todo)}
+                  style={{ marginTop: '4px', marginRight: '12px' }}
                 />
-              </List.Item>
-            )}
-          />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    textDecoration: todo.completed ? 'line-through' : 'none',
+                    marginBottom: '4px',
+                  }}>
+                    {todo.title}
+                  </div>
+                  <Space>
+                    {todo.description && <span style={{ color: '#8c8c8c' }}>{todo.description}</span>}
+                    <Tag color={todo.priority === 'high' ? 'red' : todo.priority === 'medium' ? 'blue' : 'green'}>
+                      {todo.priority === 'high' ? '高' : todo.priority === 'medium' ? '中' : '低'}
+                    </Tag>
+                  </Space>
+                </div>
+                <Space>
+                  <Button type="text" icon={<EditOutlined />} onClick={() => handleEditTodo(todo)} />
+                  <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteTodo(todo.id)} />
+                </Space>
+              </div>
+            ))}
+          </div>
         )}
       </Card>
 
