@@ -1,0 +1,24 @@
+{
+  "name": "todo-app",
+  "version": "1.0.0",
+  "description": "Todo Master - A TickTick-inspired todo application",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "install:all": "npm install --prefix web/frontend && npm install --prefix web/backend",
+    "install:clean": "rm -rf web/frontend/node_modules web/backend/node_modules web/frontend/package-lock.json web/backend/package-lock.json && npm run install:all",
+    "rebuild:sqlite": "npm rebuild sqlite3 --prefix web/backend",
+    "dev:frontend": "npm run dev --prefix web/frontend",
+    "dev:backend": "npm run dev --prefix web/backend",
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "build:frontend": "npm run build --prefix web/frontend",
+    "build:backend": "npm run build --prefix web/backend",
+    "build": "npm run build:backend && npm run build:frontend",
+    "start": "npm run start --prefix web/backend"
+  },
+  "keywords": ["todo", "productivity", "react", "express", "sqlite"],
+  "author": "",
+  "license": "MIT"
+}
