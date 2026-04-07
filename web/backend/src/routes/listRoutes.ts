@@ -35,7 +35,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Create a new list
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { name, color = '#3B82F6' } = req.body;
+    const { name, color = '#1677ff', icon = 'BriefcaseOutlined' } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ success: false, error: 'List name is required' });
@@ -43,8 +43,8 @@ router.post('/', async (req: Request, res: Response) => {
 
     const id = uuidv4();
     await db.run(
-      `INSERT INTO lists (id, name, color, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))`,
-      [id, name.trim(), color]
+      `INSERT INTO lists (id, name, color, icon, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+      [id, name.trim(), color, icon]
     );
 
     const list = await db.get<any>('SELECT * FROM lists WHERE id = ?', [id]);
@@ -59,7 +59,7 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, color } = req.body;
+    const { name, color, icon } = req.body;
 
     const existingList = await db.get<any>('SELECT * FROM lists WHERE id = ?', [id]);
     if (!existingList) {
@@ -76,6 +76,10 @@ router.put('/:id', async (req: Request, res: Response) => {
     if (color !== undefined) {
       updates.push('color = ?');
       values.push(color);
+    }
+    if (icon !== undefined) {
+      updates.push('icon = ?');
+      values.push(icon);
     }
 
     if (updates.length > 0) {

@@ -13,7 +13,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       locale={zhCN}
       theme={{
         token: {
-          colorPrimary: '#4A90E2',
+          colorPrimary: '#1677ff',
           borderRadius: 6,
         },
       }}

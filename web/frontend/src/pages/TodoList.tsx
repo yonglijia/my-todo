@@ -60,16 +60,18 @@ const TodoListPage: React.FC = () => {
   };
 
   const filterTodos = () => {
+    let result = todos;
+
     switch (filter) {
       case 'active':
-        setFilteredTodos(todos.filter(todo => !todo.completed));
+        result = result.filter(todo => !todo.completed);
         break;
       case 'completed':
-        setFilteredTodos(todos.filter(todo => todo.completed));
+        result = result.filter(todo => todo.completed);
         break;
-      default:
-        setFilteredTodos(todos);
     }
+
+    setFilteredTodos(result);
   };
 
   const handleCreateTodo = () => {
@@ -104,7 +106,6 @@ const TodoListPage: React.FC = () => {
       });
       if (response.success && response.data) {
         setTodos(todos.map(t => t.id === todo.id ? response.data! : t));
-        toast.success(todo.completed ? '已标记为未完成' : '已完成');
       } else {
         toast.error(response.error || '更新失败');
       }
@@ -161,12 +162,12 @@ const TodoListPage: React.FC = () => {
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#e0edff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <InboxOutlined style={{ fontSize: '20px', color: '#4A90E2' }} />
+            <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: '#e6f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <InboxOutlined style={{ fontSize: '20px', color: '#1677ff' }} />
             </div>
             <div>
               <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 600 }}>收集箱</h1>
-              <p style={{ margin: 0, fontSize: '14px', color: '#8c8c8c' }}>{todos.length} 个任务</p>
+              <p style={{ margin: 0, fontSize: '14px', color: '#8c8c8c' }}>{filteredTodos.length} 个任务</p>
             </div>
           </div>
           <Button
@@ -222,13 +223,15 @@ const TodoListPage: React.FC = () => {
                   <Checkbox
                     checked={todo.completed}
                     onClick={(e) => handleToggleComplete(todo, e)}
-                    style={{ marginTop: '4px', marginRight: '12px' }}
+                    style={{ marginTop: '0px', marginRight: '12px', marginLeft: '0px' }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
                       textDecoration: todo.completed ? 'line-through' : 'none',
-                      color: todo.completed ? '#8c8c8c' : '#262626',
+                      color: todo.completed ? '#8c8c8c' : '#404040',
                       marginBottom: '4px',
+                      fontSize: '14px',
+                      fontWeight: 500,
                     }}>
                       {todo.title}
                     </div>

@@ -139,7 +139,7 @@ const CalendarPage: React.FC = () => {
                     <Text
                       style={{
                         fontWeight: date.isSame(dayjs(), 'day') ? 600 : 400,
-                        color: date.isSame(dayjs(), 'day') ? '#4A90E2' : '#262626',
+                        color: date.isSame(dayjs(), 'day') ? '#1677ff' : '#262626',
                       }}
                     >
                       {date.date()}

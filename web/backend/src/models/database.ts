@@ -33,12 +33,13 @@ class Database {
       )
     `);
 
-    // Create lists table
+    // Create lists table with icon field
     await run(`
       CREATE TABLE IF NOT EXISTS lists (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        color TEXT DEFAULT '#3B82F6',
+        color TEXT DEFAULT '#1677ff',
+        icon TEXT DEFAULT 'BriefcaseOutlined',
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
       )
@@ -49,7 +50,7 @@ class Database {
       CREATE TABLE IF NOT EXISTS tags (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        color TEXT DEFAULT '#EF4444',
+        color TEXT DEFAULT '#f5222d',
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL
       )
@@ -72,24 +73,31 @@ class Database {
     await run('CREATE INDEX IF NOT EXISTS idx_todos_priority ON todos(priority)');
     await run('CREATE INDEX IF NOT EXISTS idx_todos_listId ON todos(listId)');
 
+    // Try to add icon column if not exists (for existing databases)
+    try {
+      await run('ALTER TABLE lists ADD COLUMN icon TEXT DEFAULT \'BriefcaseOutlined\'');
+    } catch (e) {
+      // Column already exists, ignore
+    }
+
     // Insert default lists if not exist
     const defaultLists = [
-      { id: '1', name: '工作', color: '#3B82F6' },
-      { id: '2', name: '个人', color: '#10B981' },
-      { id: '3', name: '学习', color: '#F59E0B' },
+      { id: '1', name: '工作', color: '#1677ff', icon: 'BriefcaseOutlined' },
+      { id: '2', name: '个人', color: '#52c41a', icon: 'HomeOutlined' },
+      { id: '3', name: '学习', color: '#faad14', icon: 'BookOutlined' },
     ];
 
     for (const list of defaultLists) {
       await run(
-        `INSERT OR IGNORE INTO lists (id, name, color, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))`,
-        [list.id, list.name, list.color]
+        `INSERT OR IGNORE INTO lists (id, name, color, icon, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+        [list.id, list.name, list.color, list.icon]
       );
     }
 
     // Insert default tags if not exist
     const defaultTags = [
-      { id: '1', name: '重要', color: '#EF4444' },
-      { id: '2', name: '紧急', color: '#F59E0B' },
+      { id: '1', name: '重要', color: '#f5222d' },
+      { id: '2', name: '紧急', color: '#f5222d' },
     ];
 
     for (const tag of defaultTags) {

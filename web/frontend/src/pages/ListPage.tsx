@@ -157,12 +157,15 @@ const ListPage: React.FC = () => {
                 <Checkbox
                   checked={todo.completed}
                   onChange={() => handleToggleComplete(todo)}
-                  style={{ marginTop: '4px', marginRight: '12px' }}
+                  style={{ marginTop: '0px', marginRight: '12px', marginLeft: '0px' }}
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
                     textDecoration: todo.completed ? 'line-through' : 'none',
                     marginBottom: '4px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: todo.completed ? '#8c8c8c' : '#404040',
                   }}>
                     {todo.title}
                   </div>
