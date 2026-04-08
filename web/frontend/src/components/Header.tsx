@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Layout, Menu, Avatar, Badge, Button } from 'antd';
-import { CalendarOutlined, CheckSquareOutlined, SearchOutlined, BellOutlined, UserOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CheckSquareOutlined, SearchOutlined, BellOutlined, UserOutlined, RocketOutlined } from '@ant-design/icons';
 import SearchModal from './SearchModal';
 
 const { Header: AntHeader } = Layout;
@@ -49,15 +49,15 @@ const Header: React.FC<HeaderProps> = () => {
                 width: '32px',
                 height: '32px',
                 borderRadius: '6px',
-                background: '#1677ff',
+                background: 'linear-gradient(135deg, #1677ff 0%, #13c2c2 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <CheckSquareOutlined style={{ color: '#fff', fontSize: '18px' }} />
+              <RocketOutlined style={{ color: '#fff', fontSize: '18px' }} />
             </div>
-            <span style={{ fontSize: '18px', fontWeight: 600, color: '#262626' }}>滴答清单</span>
+            <span style={{ fontSize: '18px', fontWeight: 600, color: '#262626' }}>TaskFlow</span>
           </Link>
         </div>
 
