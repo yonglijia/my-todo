@@ -54,7 +54,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
     <div
       style={{
         display: 'flex',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         padding: '12px 0',
         borderBottom: '1px solid #f0f0f0',
         opacity: todo.completed ? 0.6 : 1,
@@ -63,7 +63,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
       <Checkbox
         checked={todo.completed}
         onClick={(e) => onToggleComplete(todo, e)}
-        style={{ marginTop: '0px', marginRight: '12px', marginLeft: '0px', flexShrink: 0 }}
+        style={{ marginRight: '12px', marginLeft: '0px', flexShrink: 0 }}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
         {/* 标题 - 直接可编辑 */}
@@ -76,7 +76,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
           style={{
             textDecoration: todo.completed ? 'line-through' : 'none',
             color: todo.completed ? '#8c8c8c' : '#404040',
-            marginBottom: '2px',
+            marginBottom: todo.description ? '2px' : '0px',
             fontSize: '14px',
             fontWeight: 500,
             padding: '0 4px',
@@ -87,24 +87,23 @@ const TodoItem: React.FC<TodoItemProps> = ({
         />
 
         {/* 描述 - 直接可编辑（改为普通 Input） */}
-        {todo.description && (
-          <Input
-            value={todo.description}
-            onChange={(e) => onFieldChange(todo.id, 'description', e.target.value || undefined)}
-            disabled={todo.completed}
-            placeholder="输入任务描述"
-            variant="borderless"
-            style={{
-              color: '#8c8c8c',
-              fontSize: '12px',
-              marginBottom: '4px',
-              padding: '0 4px',
-              height: '20px',
-              cursor: todo.completed ? 'default' : 'text',
-              lineHeight: '20px',
-            }}
-          />
-        )}
+        <Input
+          value={todo.description || ''}
+          onChange={(e) => onFieldChange(todo.id, 'description', e.target.value || undefined)}
+          disabled={todo.completed}
+          placeholder="输入任务描述"
+          variant="borderless"
+          style={{
+            display: todo.description ? 'block' : 'none',
+            color: '#8c8c8c',
+            fontSize: '12px',
+            marginBottom: '4px',
+            padding: '0 4px',
+            height: '20px',
+            cursor: todo.completed ? 'default' : 'text',
+            lineHeight: '20px',
+          }}
+        />
 
         {/* 日期、时间、优先级编辑 */}
         <div style={{ display: 'flex', gap: '6px', marginBottom: '0px', flexWrap: 'wrap' }}>
