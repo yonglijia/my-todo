@@ -8,7 +8,7 @@ import {
   CloudOutlined, CoffeeOutlined, ExperimentOutlined, FireOutlined, GlobalOutlined, FlagOutlined,
   FundOutlined, KeyOutlined, LikeOutlined, MedicineBoxOutlined, PhoneOutlined, PrinterOutlined,
   SafetyOutlined, SoundOutlined, ThunderboltOutlined, ToolOutlined, WalletOutlined, EnvironmentOutlined,
-  FolderOutlined, LeftOutlined, RightOutlined
+  FolderOutlined, LeftOutlined, RightOutlined, DeleteOutlined
 } from '@ant-design/icons';
 import { TodoList, Tag } from '../types';
 import { apiClient } from '../utils/api';
@@ -156,6 +156,44 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
     }
   };
 
+  const handleDeleteList = async (id: string) => {
+    Modal.confirm({
+      title: '删除清单',
+      content: '确定要删除这个清单吗？清单中的任务将保留但不再关联该清单。',
+      okText: '确定',
+      cancelText: '取消',
+      okType: 'danger',
+      onOk: async () => {
+        const response = await apiClient.deleteList(id);
+        if (response.success) {
+          setLists(lists.filter(list => list.id !== id));
+          toast.success('清单已删除');
+        } else {
+          toast.error(response.error || '删除失败');
+        }
+      },
+    });
+  };
+
+  const handleDeleteTag = async (id: string) => {
+    Modal.confirm({
+      title: '删除标签',
+      content: '确定要删除这个标签吗？任务的标签关联将被移除。',
+      okText: '确定',
+      cancelText: '取消',
+      okType: 'danger',
+      onOk: async () => {
+        const response = await apiClient.deleteTag(id);
+        if (response.success) {
+          setTags(tags.filter(tag => tag.id !== id));
+          toast.success('标签已删除');
+        } else {
+          toast.error(response.error || '删除失败');
+        }
+      },
+    });
+  };
+
   const menuItems = [
     { icon: InboxOutlined, label: '收集箱', path: '/' },
     { icon: CalendarOutlined, label: '今天', path: '/today' },
@@ -219,19 +257,54 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
           />
         </div>
         {lists.length > 0 && (
-          <Menu
-            mode="inline"
-            selectedKeys={[location.pathname]}
-            style={{ border: 'none', marginBottom: '8px' }}
-            items={lists.map(list => {
+          <div style={{ marginBottom: '8px' }}>
+            {lists.map(list => {
               const IconComponent = getIconComponent((list as any).icon);
-              return {
-                key: `/list/${list.id}`,
-                icon: <IconComponent style={{ color: list.color }} />,
-                label: <Link to={`/list/${list.id}`}>{list.name}</Link>,
-              };
+              return (
+                <div
+                  key={list.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0 0',
+                    marginBottom: '2px',
+                    borderRadius: '4px',
+                    transition: 'background 0.2s',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <Link
+                    to={`/list/${list.id}`}
+                    style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '8px 12px',
+                      color: '#262626',
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                    }}
+                  >
+                    <IconComponent style={{ color: list.color, marginRight: '8px' }} />
+                    <span>{list.name}</span>
+                  </Link>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDeleteList(list.id)}
+                    style={{
+                      color: '#ff7875',
+                      padding: '4px 8px',
+                      marginRight: '4px',
+                    }}
+                  />
+                </div>
+              );
             })}
-          />
+          </div>
         )}
 
 
@@ -257,16 +330,51 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
           />
         </div>
         {tags.length > 0 && (
-          <Menu
-            mode="inline"
-            selectedKeys={[location.pathname]}
-            style={{ border: 'none', marginBottom: '8px' }}
-            items={tags.map(tag => ({
-              key: `/tag/${tag.id}`,
-              icon: <span style={{ color: '#f5222d', fontWeight: 600 }}>#</span>,
-              label: <Link to={`/tag/${tag.id}`}>{tag.name}</Link>,
-            }))}
-          />
+          <div style={{ marginBottom: '8px' }}>
+            {tags.map(tag => (
+              <div
+                key={tag.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0 0',
+                  marginBottom: '2px',
+                  borderRadius: '4px',
+                  transition: 'background 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                <Link
+                  to={`/tag/${tag.id}`}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    color: '#262626',
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                  }}
+                >
+                  <span style={{ color: '#f5222d', fontWeight: 600, marginRight: '8px' }}>#</span>
+                  <span>{tag.name}</span>
+                </Link>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleDeleteTag(tag.id)}
+                  style={{
+                    color: '#ff7875',
+                    padding: '4px 8px',
+                    marginRight: '4px',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
