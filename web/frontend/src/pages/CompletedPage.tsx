@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Tag, Button, Checkbox, Space, Empty, Spin } from 'antd';
-import { CalendarOutlined, ClockCircleOutlined, EditOutlined, DeleteOutlined, UndoOutlined, CheckCircleFilled } from '@ant-design/icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Button, Empty, Spin } from 'antd';
+import { UndoOutlined, EditOutlined, DeleteOutlined, CheckCircleFilled } from '@ant-design/icons';
 import { Todo, TodoList, Tag as TagType } from '../types';
 import { apiClient } from '../utils/api';
-import { formatDate } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 import TodoModal from '../components/TodoModal';
+import TodoItem from '../components/TodoItem';
 
 const CompletedPage: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -93,17 +93,6 @@ const CompletedPage: React.FC = () => {
     setEditingTodo(null);
   };
 
-  const getListInfo = (listId?: string) => lists.find(l => l.id === listId);
-  const getTagsInfo = (tagIds?: string[]) => {
-    if (!tagIds) return [];
-    return tags.filter(t => tagIds.includes(t.id));
-  };
-
-  const getPriorityTag = (priority: string) => {
-    const colors: Record<string, string> = { high: 'red', medium: 'blue', low: 'green' };
-    const labels: Record<string, string> = { high: '高', medium: '中', low: '低' };
-    return <Tag color={colors[priority]}>{labels[priority]}</Tag>;
-  };
 
   if (loading) {
     return (
@@ -137,71 +126,28 @@ const CompletedPage: React.FC = () => {
           />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {todos.map((todo) => {
-              const listInfo = getListInfo(todo.listId);
-              const tagsInfo = getTagsInfo(todo.tags);
-
-              return (
-                <div
-                  key={todo.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    padding: '16px 0',
-                    borderBottom: '1px solid #f0f0f0',
-                    opacity: 0.7,
-                  }}
-                >
-                  <Checkbox
-                    checked={todo.completed}
-                    onClick={(e) => handleToggleComplete(todo, e)}
-                    style={{ marginTop: '0px', marginRight: '12px', marginLeft: '0px' }}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      textDecoration: 'line-through',
-                      color: '#8c8c8c',
-                      marginBottom: '4px',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                    }}>
-                      {todo.title}
-                    </div>
-                    {todo.description && (
-                      <div style={{ marginBottom: '8px', color: '#bfbfbf', fontSize: '14px' }}>
-                        {todo.description}
-                      </div>
-                    )}
-                    <Space size={[8, 8]} wrap>
-                      {todo.dueDate && (
-                        <Tag icon={<CalendarOutlined />}>
-                          {formatDate(todo.dueDate, 'MM月dd日')}
-                        </Tag>
-                      )}
-                      {todo.startTime && (
-                        <Tag icon={<ClockCircleOutlined />}>
-                          {todo.startTime}{todo.endTime && ` - ${todo.endTime}`}
-                        </Tag>
-                      )}
-                      {listInfo && <Tag color={listInfo.color}>{listInfo.name}</Tag>}
-                      {tagsInfo.map(tag => (
-                        <Tag key={tag.id} color={tag.color}>{tag.name}</Tag>
-                      ))}
-                    </Space>
-                  </div>
-                  <Space>
-                    <Button
-                      type="text"
-                      icon={<UndoOutlined />}
-                      onClick={(e) => handleToggleComplete(todo, e)}
-                      title="恢复为未完成"
-                    />
-                    <Button type="text" icon={<EditOutlined />} onClick={() => { setEditingTodo(todo); setIsModalOpen(true); }} />
-                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteTodo(todo.id)} />
-                  </Space>
-                </div>
-              );
-            })}
+            {todos.map((todo) => (
+              <div
+                key={todo.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  padding: '16px 0',
+                  borderBottom: '1px solid #f0f0f0',
+                  opacity: 0.7,
+                }}
+              >
+                <TodoItem
+                  todo={todo}
+                  lists={lists}
+                  tags={tags}
+                  onToggleComplete={handleToggleComplete}
+                  onDelete={handleDeleteTodo}
+                  onEdit={(todo) => { setEditingTodo(todo); setIsModalOpen(true); }}
+                  onFieldChange={() => {}}
+                />
+              </div>
+            ))}
           </div>
         )}
       </Card>

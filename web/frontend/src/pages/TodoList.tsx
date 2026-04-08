@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Tag, Button, Checkbox, Space, Empty, Spin, Segmented, Input, Select, DatePicker, Popover } from 'antd';
-import { PlusOutlined, CalendarOutlined, ClockCircleOutlined, EditOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
+import { Card, Button, Empty, Spin, Segmented, Input } from 'antd';
+import { PlusOutlined, InboxOutlined } from '@ant-design/icons';
 import { Todo, TodoList, Tag as TagType } from '../types';
 import { apiClient } from '../utils/api';
-import { formatDate } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 import TodoModal from '../components/TodoModal';
-import dayjs from 'dayjs';
+import TodoItem from '../components/TodoItem';
 
 const TodoListPage: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -137,28 +136,6 @@ const TodoListPage: React.FC = () => {
     setEditingTodo(null);
   };
 
-  const getListInfo = (listId?: string) => {
-    return lists.find(l => l.id === listId);
-  };
-
-  const getTagsInfo = (tagIds?: string[]) => {
-    if (!tagIds) return [];
-    return tags.filter(t => tagIds.includes(t.id));
-  };
-
-  const getPriorityTag = (priority: string) => {
-    const colors: Record<string, string> = {
-      high: 'red',
-      medium: 'blue',
-      low: 'green',
-    };
-    const labels: Record<string, string> = {
-      high: '高',
-      medium: '中',
-      low: '低',
-    };
-    return <Tag color={colors[priority]}>{labels[priority]}</Tag>;
-  };
 
   // 自动保存函数
   const autoSaveTodo = async (todoId: string, updates: Partial<Todo>) => {
@@ -264,167 +241,18 @@ const TodoListPage: React.FC = () => {
           </Empty>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {filteredTodos.map((todo) => {
-              const listInfo = getListInfo(todo.listId);
-              const tagsInfo = getTagsInfo(todo.tags);
-
-              return (
-                <div
-                  key={todo.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    padding: '16px 0',
-                    borderBottom: '1px solid #f0f0f0',
-                    opacity: todo.completed ? 0.6 : 1,
-                  }}
-                >
-                  <Checkbox
-                    checked={todo.completed}
-                    onClick={(e) => handleToggleComplete(todo, e)}
-                    style={{ marginTop: '2px', marginRight: '12px', marginLeft: '0px', flexShrink: 0 }}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {/* 标题 - 直接可编辑 */}
-                    <Input
-                      value={todo.title}
-                      onChange={(e) => handleFieldChange(todo.id, 'title', e.target.value)}
-                      disabled={todo.completed}
-                      placeholder="输入任务标题"
-                      variant="borderless"
-                      style={{
-                        textDecoration: todo.completed ? 'line-through' : 'none',
-                        color: todo.completed ? '#8c8c8c' : '#404040',
-                        marginBottom: '4px',
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        padding: '2px 4px',
-                        cursor: todo.completed ? 'default' : 'text',
-                      }}
-                    />
-
-                    {/* 描述 - 直接可编辑 */}
-                    <Input.TextArea
-                      value={todo.description || ''}
-                      onChange={(e) => handleFieldChange(todo.id, 'description', e.target.value || undefined)}
-                      disabled={todo.completed}
-                      placeholder="输入任务描述"
-                      rows={1}
-                      variant="borderless"
-                      style={{
-                        color: todo.completed ? '#8c8c8c' : '#8c8c8c',
-                        fontSize: '14px',
-                        marginBottom: '8px',
-                        padding: '2px 4px',
-                        cursor: todo.completed ? 'default' : 'text',
-                      }}
-                    />
-
-                    {/* 日期、时间、优先级编辑 */}
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                      <Popover
-                        content={
-                          <DatePicker
-                            value={todo.dueDate ? dayjs(todo.dueDate) : null}
-                            onChange={(date) => {
-                              const dateStr = date ? dayjs(date).format('YYYY-MM-DD') : undefined;
-                              handleFieldChange(todo.id, 'dueDate', dateStr);
-                            }}
-                            style={{ width: '100%' }}
-                          />
-                        }
-                        title="选择截止日期"
-                        trigger="click"
-                      >
-                        <Tag
-                          icon={<CalendarOutlined />}
-                          style={{ cursor: todo.completed ? 'default' : 'pointer', marginBottom: '0' }}
-                        >
-                          {todo.dueDate ? formatDate(todo.dueDate, 'MM月dd日') : '添加日期'}
-                        </Tag>
-                      </Popover>
-
-                      <Popover
-                        content={
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '200px' }}>
-                            <div>
-                              <label style={{ fontSize: '12px', color: '#8c8c8c', marginBottom: '4px', display: 'block' }}>
-                                开始时间
-                              </label>
-                              <Input
-                                value={todo.startTime || ''}
-                                onChange={(e) => handleFieldChange(todo.id, 'startTime', e.target.value || undefined)}
-                                placeholder="09:00"
-                                type="text"
-                              />
-                            </div>
-                            <div>
-                              <label style={{ fontSize: '12px', color: '#8c8c8c', marginBottom: '4px', display: 'block' }}>
-                                结束时间
-                              </label>
-                              <Input
-                                value={todo.endTime || ''}
-                                onChange={(e) => handleFieldChange(todo.id, 'endTime', e.target.value || undefined)}
-                                placeholder="17:00"
-                                type="text"
-                              />
-                            </div>
-                          </div>
-                        }
-                        title="设置时间"
-                        trigger="click"
-                      >
-                        <Tag
-                          icon={<ClockCircleOutlined />}
-                          style={{ cursor: todo.completed ? 'default' : 'pointer', marginBottom: '0' }}
-                        >
-                          {todo.startTime ? `${todo.startTime}${todo.endTime ? ` - ${todo.endTime}` : ''}` : '添加时间'}
-                        </Tag>
-                      </Popover>
-
-                      <Popover
-                        content={
-                          <Select
-                            value={todo.priority}
-                            onChange={(value) => handleFieldChange(todo.id, 'priority', value)}
-                            options={[
-                              { label: '低', value: 'low' },
-                              { label: '中', value: 'medium' },
-                              { label: '高', value: 'high' },
-                            ]}
-                            style={{ width: '150px' }}
-                          />
-                        }
-                        title="选择优先级"
-                        trigger="click"
-                      >
-                        {getPriorityTag(todo.priority)}
-                      </Popover>
-
-                      {listInfo && (
-                        <Tag color={listInfo.color}>{listInfo.name}</Tag>
-                      )}
-                      {tagsInfo.map(tag => (
-                        <Tag key={tag.id} color={tag.color}>{tag.name}</Tag>
-                      ))}
-                    </div>
-                  </div>
-                  <Space>
-                    <Button
-                      type="text"
-                      icon={<EditOutlined />}
-                      onClick={() => handleEditTodo(todo)}
-                    />
-                    <Button
-                      type="text"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => handleDeleteTodo(todo.id)}
-                    />
-                  </Space>
-                </div>
-              );
-            })}
+            {filteredTodos.map((todo) => (
+              <TodoItem
+                key={todo.id}
+                todo={todo}
+                lists={lists}
+                tags={tags}
+                onToggleComplete={handleToggleComplete}
+                onDelete={handleDeleteTodo}
+                onEdit={handleEditTodo}
+                onFieldChange={handleFieldChange}
+              />
+            ))}
           </div>
         )}
       </Card>
