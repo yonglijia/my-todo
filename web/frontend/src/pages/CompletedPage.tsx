@@ -127,16 +127,7 @@ const CompletedPage: React.FC = () => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {todos.map((todo) => (
-              <div
-                key={todo.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  padding: '16px 0',
-                  borderBottom: '1px solid #f0f0f0',
-                  opacity: 0.7,
-                }}
-              >
+              <div key={todo.id} style={{ opacity: 0.7 }}>
                 <TodoItem
                   todo={todo}
                   lists={lists}

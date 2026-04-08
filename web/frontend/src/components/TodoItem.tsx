@@ -55,7 +55,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
       style={{
         display: 'flex',
         alignItems: 'flex-start',
-        padding: '16px 0',
+        padding: '12px 0',
         borderBottom: '1px solid #f0f0f0',
         opacity: todo.completed ? 0.6 : 1,
       }}
@@ -63,7 +63,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
       <Checkbox
         checked={todo.completed}
         onClick={(e) => onToggleComplete(todo, e)}
-        style={{ marginTop: '2px', marginRight: '12px', marginLeft: '0px', flexShrink: 0 }}
+        style={{ marginTop: '0px', marginRight: '12px', marginLeft: '0px', flexShrink: 0 }}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
         {/* 标题 - 直接可编辑 */}
@@ -76,33 +76,38 @@ const TodoItem: React.FC<TodoItemProps> = ({
           style={{
             textDecoration: todo.completed ? 'line-through' : 'none',
             color: todo.completed ? '#8c8c8c' : '#404040',
-            marginBottom: '4px',
+            marginBottom: '2px',
             fontSize: '14px',
             fontWeight: 500,
-            padding: '2px 4px',
+            padding: '0 4px',
+            height: '24px',
             cursor: todo.completed ? 'default' : 'text',
+            lineHeight: '24px',
           }}
         />
 
-        {/* 描述 - 直接可编辑 */}
-        <Input.TextArea
-          value={todo.description || ''}
-          onChange={(e) => onFieldChange(todo.id, 'description', e.target.value || undefined)}
-          disabled={todo.completed}
-          placeholder="输入任务描述"
-          rows={1}
-          variant="borderless"
-          style={{
-            color: todo.completed ? '#8c8c8c' : '#8c8c8c',
-            fontSize: '14px',
-            marginBottom: '8px',
-            padding: '2px 4px',
-            cursor: todo.completed ? 'default' : 'text',
-          }}
-        />
+        {/* 描述 - 直接可编辑（改为普通 Input） */}
+        {todo.description && (
+          <Input
+            value={todo.description}
+            onChange={(e) => onFieldChange(todo.id, 'description', e.target.value || undefined)}
+            disabled={todo.completed}
+            placeholder="输入任务描述"
+            variant="borderless"
+            style={{
+              color: '#8c8c8c',
+              fontSize: '12px',
+              marginBottom: '4px',
+              padding: '0 4px',
+              height: '20px',
+              cursor: todo.completed ? 'default' : 'text',
+              lineHeight: '20px',
+            }}
+          />
+        )}
 
         {/* 日期、时间、优先级编辑 */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '0px', flexWrap: 'wrap' }}>
           <Popover
             content={
               <DatePicker
