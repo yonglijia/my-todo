@@ -272,8 +272,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
                     borderRadius: '4px',
                     transition: 'background 0.2s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f5f5f5';
+                    const btn = e.currentTarget.querySelector('.delete-btn') as HTMLElement;
+                    if (btn) btn.style.opacity = '1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    const btn = e.currentTarget.querySelector('.delete-btn') as HTMLElement;
+                    if (btn) btn.style.opacity = '0';
+                  }}
                 >
                   <Link
                     to={`/list/${list.id}`}
@@ -291,18 +299,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
                     <IconComponent style={{ color: list.color, marginRight: '8px', flexShrink: 0 }} />
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{list.name}</span>
                   </Link>
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<DeleteOutlined />}
-                    onClick={() => handleDeleteList(list.id)}
-                    style={{
-                      color: '#ff7875',
-                      padding: '4px 8px',
-                      marginRight: '4px',
-                      flexShrink: 0,
-                    }}
-                  />
+                  {sidebarOpen && (
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      onClick={() => handleDeleteList(list.id)}
+                      style={{
+                        color: '#ff7875',
+                        padding: '4px 8px',
+                        marginRight: '4px',
+                        flexShrink: 0,
+                        opacity: 0,
+                        transition: 'opacity 0.2s',
+                      }}
+                      className="delete-btn"
+                    />
+                  )}
                 </div>
               );
             })}
@@ -345,8 +358,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
                   borderRadius: '4px',
                   transition: 'background 0.2s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f5f5f5';
+                  const btn = e.currentTarget.querySelector('.delete-btn') as HTMLElement;
+                  if (btn) btn.style.opacity = '1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  const btn = e.currentTarget.querySelector('.delete-btn') as HTMLElement;
+                  if (btn) btn.style.opacity = '0';
+                }}
               >
                 <Link
                   to={`/tag/${tag.id}`}
@@ -364,18 +385,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
                   <span style={{ color: '#f5222d', fontWeight: 600, marginRight: '8px', flexShrink: 0 }}>#</span>
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tag.name}</span>
                 </Link>
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleDeleteTag(tag.id)}
-                  style={{
-                    color: '#ff7875',
-                    padding: '4px 8px',
-                    marginRight: '4px',
-                    flexShrink: 0,
-                  }}
-                />
+                {sidebarOpen && (
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDeleteTag(tag.id)}
+                    style={{
+                      color: '#ff7875',
+                      padding: '4px 8px',
+                      marginRight: '4px',
+                      flexShrink: 0,
+                      opacity: 0,
+                      transition: 'opacity 0.2s',
+                    }}
+                    className="delete-btn"
+                  />
+                )}
               </div>
             ))}
           </div>

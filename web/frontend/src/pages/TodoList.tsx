@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Tag, Button, Checkbox, Space, Empty, Spin, Segmented, Input, Select, DatePicker } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Tag, Button, Checkbox, Space, Empty, Spin, Segmented, Input, Select, DatePicker, Popover } from 'antd';
 import { PlusOutlined, CalendarOutlined, ClockCircleOutlined, EditOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import { Todo, TodoList, Tag as TagType } from '../types';
 import { apiClient } from '../utils/api';
@@ -17,13 +17,9 @@ const TodoListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lists, setLists] = useState<TodoList[]>([]);
   const [tags, setTags] = useState<TagType[]>([]);
-  const [inlineEditId, setInlineEditId] = useState<string | null>(null);
-  const [inlineEditTitle, setInlineEditTitle] = useState('');
-  const [inlineEditDescription, setInlineEditDescription] = useState('');
-  const [inlineEditDueDate, setInlineEditDueDate] = useState<any>(null);
-  const [inlineEditStartTime, setInlineEditStartTime] = useState('');
-  const [inlineEditEndTime, setInlineEditEndTime] = useState('');
-  const [inlineEditPriority, setInlineEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  
+  // 自动保存的延迟计时器
+  const saveTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
   useEffect(() => {
     fetchTodos();
@@ -33,6 +29,13 @@ const TodoListPage: React.FC = () => {
   useEffect(() => {
     filterTodos();
   }, [todos, filter]);
+
+  // 清理定时器
+  useEffect(() => {
+    return () => {
+      Object.values(saveTimers.current).forEach(timer => clearTimeout(timer));
+    };
+  }, []);
 
   const fetchTodos = async () => {
     try {
@@ -157,51 +160,52 @@ const TodoListPage: React.FC = () => {
     return <Tag color={colors[priority]}>{labels[priority]}</Tag>;
   };
 
-  const handleStartInlineEdit = (todo: Todo) => {
-    setInlineEditId(todo.id);
-    setInlineEditTitle(todo.title);
-    setInlineEditDescription(todo.description || '');
-    setInlineEditDueDate(todo.dueDate ? new Date(todo.dueDate) : null);
-    setInlineEditStartTime(todo.startTime || '');
-    setInlineEditEndTime(todo.endTime || '');
-    setInlineEditPriority(todo.priority as 'low' | 'medium' | 'high');
-  };
-
-  const handleSaveInlineEdit = async (todo: Todo) => {
-    if (!inlineEditTitle.trim()) {
-      toast.error('任务标题不能为空');
-      return;
-    }
+  // 自动保存函数
+  const autoSaveTodo = async (todoId: string, updates: Partial<Todo>) => {
     try {
-      const response = await apiClient.updateTodo(todo.id, {
-        title: inlineEditTitle,
-        description: inlineEditDescription,
-        dueDate: inlineEditDueDate ? new Date(inlineEditDueDate).toISOString().split('T')[0] : undefined,
-        startTime: inlineEditStartTime || undefined,
-        endTime: inlineEditEndTime || undefined,
-        priority: inlineEditPriority,
-      });
+      const response = await apiClient.updateTodo(todoId, updates);
       if (response.success && response.data) {
-        setTodos(todos.map(t => t.id === todo.id ? response.data! : t));
-        toast.success('已更新');
+        setTodos(todos.map(t => t.id === todoId ? response.data! : t));
       } else {
-        toast.error(response.error || '更新失败');
+        toast.error(response.error || '保存失败');
+        // 恢复原值
+        const originalTodo = todos.find(t => t.id === todoId);
+        if (originalTodo) {
+          setTodos([...todos]);
+        }
       }
     } catch (error) {
-      toast.error('更新失败');
-    } finally {
-      handleCancelInlineEdit();
+      toast.error('保存失败');
+      // 恢复原值
+      const originalTodo = todos.find(t => t.id === todoId);
+      if (originalTodo) {
+        setTodos([...todos]);
+      }
     }
   };
 
-  const handleCancelInlineEdit = () => {
-    setInlineEditId(null);
-    setInlineEditTitle('');
-    setInlineEditDescription('');
-    setInlineEditDueDate(null);
-    setInlineEditStartTime('');
-    setInlineEditEndTime('');
-    setInlineEditPriority('medium');
+  // 处理字段变化，支持延迟保存
+  const handleFieldChange = (todoId: string, field: string, value: any) => {
+    // 清除之前的定时器
+    if (saveTimers.current[`${todoId}_${field}`]) {
+      clearTimeout(saveTimers.current[`${todoId}_${field}`]);
+    }
+
+    // 立即更新UI
+    setTodos(todos.map(t => {
+      if (t.id === todoId) {
+        return { ...t, [field]: value };
+      }
+      return t;
+    }));
+
+    // 延迟500ms后保存
+    saveTimers.current[`${todoId}_${field}`] = setTimeout(() => {
+      const todo = todos.find(t => t.id === todoId);
+      if (todo) {
+        autoSaveTodo(todoId, { [field]: value });
+      }
+    }, 500);
   };
 
   if (loading) {
@@ -281,142 +285,129 @@ const TodoListPage: React.FC = () => {
                     style={{ marginTop: '0px', marginRight: '12px', marginLeft: '0px' }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    {inlineEditId === todo.id && !todo.completed ? (
-                      <div style={{ marginBottom: '12px' }}>
-                        <Input
-                          value={inlineEditTitle}
-                          onChange={(e) => setInlineEditTitle(e.target.value)}
-                          placeholder="输入任务标题"
-                          style={{ marginBottom: '8px' }}
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleSaveInlineEdit(todo);
-                            } else if (e.key === 'Escape') {
-                              handleCancelInlineEdit();
-                            }
-                          }}
-                        />
-                        <Input.TextArea
-                          value={inlineEditDescription}
-                          onChange={(e) => setInlineEditDescription(e.target.value)}
-                          placeholder="输入任务描述"
-                          rows={2}
-                          style={{ marginBottom: '8px' }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Escape') {
-                              handleCancelInlineEdit();
-                            }
-                          }}
-                        />
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                    {/* 标题 - 直接可编辑 */}
+                    <Input
+                      value={todo.title}
+                      onChange={(e) => handleFieldChange(todo.id, 'title', e.target.value)}
+                      disabled={todo.completed}
+                      placeholder="输入任务标题"
+                      variant="borderless"
+                      style={{
+                        textDecoration: todo.completed ? 'line-through' : 'none',
+                        color: todo.completed ? '#8c8c8c' : '#404040',
+                        marginBottom: '4px',
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        padding: '2px 4px',
+                        cursor: todo.completed ? 'default' : 'text',
+                      }}
+                    />
+
+                    {/* 描述 - 直接可编辑 */}
+                    <Input.TextArea
+                      value={todo.description || ''}
+                      onChange={(e) => handleFieldChange(todo.id, 'description', e.target.value || undefined)}
+                      disabled={todo.completed}
+                      placeholder="输入任务描述"
+                      rows={1}
+                      variant="borderless"
+                      style={{
+                        color: todo.completed ? '#8c8c8c' : '#8c8c8c',
+                        fontSize: '14px',
+                        marginBottom: '8px',
+                        padding: '2px 4px',
+                        cursor: todo.completed ? 'default' : 'text',
+                      }}
+                    />
+
+                    {/* 日期、时间、优先级编辑 */}
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                      <Popover
+                        content={
                           <DatePicker
-                            value={inlineEditDueDate ? dayjs(inlineEditDueDate) : null}
-                            onChange={(date) => setInlineEditDueDate(date)}
-                            placeholder="选择截止日期"
+                            value={todo.dueDate ? dayjs(todo.dueDate) : null}
+                            onChange={(date) => {
+                              const dateStr = date ? dayjs(date).format('YYYY-MM-DD') : undefined;
+                              handleFieldChange(todo.id, 'dueDate', dateStr);
+                            }}
                             style={{ width: '100%' }}
                           />
+                        }
+                        title="选择截止日期"
+                        trigger="click"
+                      >
+                        <Tag
+                          icon={<CalendarOutlined />}
+                          style={{ cursor: todo.completed ? 'default' : 'pointer', marginBottom: '0' }}
+                        >
+                          {todo.dueDate ? formatDate(todo.dueDate, 'MM月dd日') : '添加日期'}
+                        </Tag>
+                      </Popover>
+
+                      <Popover
+                        content={
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '200px' }}>
+                            <div>
+                              <label style={{ fontSize: '12px', color: '#8c8c8c', marginBottom: '4px', display: 'block' }}>
+                                开始时间
+                              </label>
+                              <Input
+                                value={todo.startTime || ''}
+                                onChange={(e) => handleFieldChange(todo.id, 'startTime', e.target.value || undefined)}
+                                placeholder="09:00"
+                                type="text"
+                              />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: '12px', color: '#8c8c8c', marginBottom: '4px', display: 'block' }}>
+                                结束时间
+                              </label>
+                              <Input
+                                value={todo.endTime || ''}
+                                onChange={(e) => handleFieldChange(todo.id, 'endTime', e.target.value || undefined)}
+                                placeholder="17:00"
+                                type="text"
+                              />
+                            </div>
+                          </div>
+                        }
+                        title="设置时间"
+                        trigger="click"
+                      >
+                        <Tag
+                          icon={<ClockCircleOutlined />}
+                          style={{ cursor: todo.completed ? 'default' : 'pointer', marginBottom: '0' }}
+                        >
+                          {todo.startTime ? `${todo.startTime}${todo.endTime ? ` - ${todo.endTime}` : ''}` : '添加时间'}
+                        </Tag>
+                      </Popover>
+
+                      <Popover
+                        content={
                           <Select
-                            value={inlineEditPriority}
-                            onChange={(value) => setInlineEditPriority(value)}
+                            value={todo.priority}
+                            onChange={(value) => handleFieldChange(todo.id, 'priority', value)}
                             options={[
                               { label: '低', value: 'low' },
                               { label: '中', value: 'medium' },
                               { label: '高', value: 'high' },
                             ]}
-                            placeholder="选择优先级"
+                            style={{ width: '150px' }}
                           />
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                          <Input
-                            value={inlineEditStartTime}
-                            onChange={(e) => setInlineEditStartTime(e.target.value)}
-                            placeholder="开始时间 (如: 09:00)"
-                            type="text"
-                          />
-                          <Input
-                            value={inlineEditEndTime}
-                            onChange={(e) => setInlineEditEndTime(e.target.value)}
-                            placeholder="结束时间 (如: 17:00)"
-                            type="text"
-                          />
-                        </div>
-                        <Space>
-                          <Button
-                            type="primary"
-                            size="small"
-                            onClick={() => handleSaveInlineEdit(todo)}
-                          >
-                            保存
-                          </Button>
-                          <Button
-                            size="small"
-                            onClick={handleCancelInlineEdit}
-                          >
-                            取消
-                          </Button>
-                        </Space>
-                      </div>
-                    ) : (
-                      <>
-                        <div
-                          onClick={() => !todo.completed && handleStartInlineEdit(todo)}
-                          style={{
-                            textDecoration: todo.completed ? 'line-through' : 'none',
-                            color: todo.completed ? '#8c8c8c' : '#404040',
-                            marginBottom: '4px',
-                            fontSize: '14px',
-                            fontWeight: 500,
-                            cursor: todo.completed ? 'default' : 'text',
-                            padding: '2px 4px',
-                            borderRadius: '2px',
-                            transition: 'background 0.2s',
-                            backgroundColor: !todo.completed ? 'transparent' : 'transparent',
-                          }}
-                          onMouseEnter={(e) => !todo.completed && (e.currentTarget.style.backgroundColor = '#f5f5f5')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                        >
-                          {todo.title}
-                        </div>
-                        {todo.description && (
-                          <div
-                            onClick={() => !todo.completed && handleStartInlineEdit(todo)}
-                            style={{
-                              marginBottom: '8px',
-                              color: '#8c8c8c',
-                              fontSize: '14px',
-                              cursor: todo.completed ? 'default' : 'text',
-                              padding: '2px 4px',
-                              borderRadius: '2px',
-                              transition: 'background 0.2s',
-                            }}
-                            onMouseEnter={(e) => !todo.completed && (e.currentTarget.style.backgroundColor = '#f5f5f5')}
-                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                          >
-                            {todo.description}
-                          </div>
-                        )}
-                      </>
-                    )}
-                    <Space size={[8, 8]} wrap>
-                      {todo.dueDate && (
-                        <Tag icon={<CalendarOutlined />}>
-                          {formatDate(todo.dueDate, 'MM月dd日')}
-                        </Tag>
-                      )}
-                      {todo.startTime && (
-                        <Tag icon={<ClockCircleOutlined />}>
-                          {todo.startTime}{todo.endTime && ` - ${todo.endTime}`}
-                        </Tag>
-                      )}
-                      {getPriorityTag(todo.priority)}
+                        }
+                        title="选择优先级"
+                        trigger="click"
+                      >
+                        {getPriorityTag(todo.priority)}
+                      </Popover>
+
                       {listInfo && (
                         <Tag color={listInfo.color}>{listInfo.name}</Tag>
                       )}
                       {tagsInfo.map(tag => (
                         <Tag key={tag.id} color={tag.color}>{tag.name}</Tag>
                       ))}
-                    </Space>
+                    </div>
                   </div>
                   <Space>
                     <Button
