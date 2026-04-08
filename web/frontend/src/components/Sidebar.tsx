@@ -285,10 +285,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
                       color: '#262626',
                       textDecoration: 'none',
                       fontSize: '14px',
+                      minWidth: 0,
                     }}
                   >
-                    <IconComponent style={{ color: list.color, marginRight: '8px' }} />
-                    <span>{list.name}</span>
+                    <IconComponent style={{ color: list.color, marginRight: '8px', flexShrink: 0 }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{list.name}</span>
                   </Link>
                   <Button
                     type="text"
@@ -299,6 +300,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
                       color: '#ff7875',
                       padding: '4px 8px',
                       marginRight: '4px',
+                      flexShrink: 0,
                     }}
                   />
                 </div>
@@ -356,10 +358,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
                     color: '#262626',
                     textDecoration: 'none',
                     fontSize: '14px',
+                    minWidth: 0,
                   }}
                 >
-                  <span style={{ color: '#f5222d', fontWeight: 600, marginRight: '8px' }}>#</span>
-                  <span>{tag.name}</span>
+                  <span style={{ color: '#f5222d', fontWeight: 600, marginRight: '8px', flexShrink: 0 }}>#</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tag.name}</span>
                 </Link>
                 <Button
                   type="text"
@@ -370,6 +373,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggleSidebar, sidebarOpen = true }
                     color: '#ff7875',
                     padding: '4px 8px',
                     marginRight: '4px',
+                    flexShrink: 0,
                   }}
                 />
               </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Tag, Button, Checkbox, Space, Empty, Spin, Segmented } from 'antd';
+import { Card, Tag, Button, Checkbox, Space, Empty, Spin, Segmented, Input } from 'antd';
 import { PlusOutlined, CalendarOutlined, ClockCircleOutlined, EditOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import { Todo, TodoList, Tag as TagType } from '../types';
 import { apiClient } from '../utils/api';
@@ -16,6 +16,9 @@ const TodoListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lists, setLists] = useState<TodoList[]>([]);
   const [tags, setTags] = useState<TagType[]>([]);
+  const [inlineEditId, setInlineEditId] = useState<string | null>(null);
+  const [inlineEditTitle, setInlineEditTitle] = useState('');
+  const [inlineEditDescription, setInlineEditDescription] = useState('');
 
   useEffect(() => {
     fetchTodos();
@@ -149,6 +152,43 @@ const TodoListPage: React.FC = () => {
     return <Tag color={colors[priority]}>{labels[priority]}</Tag>;
   };
 
+  const handleStartInlineEdit = (todo: Todo) => {
+    setInlineEditId(todo.id);
+    setInlineEditTitle(todo.title);
+    setInlineEditDescription(todo.description || '');
+  };
+
+  const handleSaveInlineEdit = async (todo: Todo) => {
+    if (!inlineEditTitle.trim()) {
+      toast.error('任务标题不能为空');
+      return;
+    }
+    try {
+      const response = await apiClient.updateTodo(todo.id, {
+        title: inlineEditTitle,
+        description: inlineEditDescription,
+      });
+      if (response.success && response.data) {
+        setTodos(todos.map(t => t.id === todo.id ? response.data! : t));
+        toast.success('已更新');
+      } else {
+        toast.error(response.error || '更新失败');
+      }
+    } catch (error) {
+      toast.error('更新失败');
+    } finally {
+      setInlineEditId(null);
+      setInlineEditTitle('');
+      setInlineEditDescription('');
+    }
+  };
+
+  const handleCancelInlineEdit = () => {
+    setInlineEditId(null);
+    setInlineEditTitle('');
+    setInlineEditDescription('');
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
@@ -226,19 +266,90 @@ const TodoListPage: React.FC = () => {
                     style={{ marginTop: '0px', marginRight: '12px', marginLeft: '0px' }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      textDecoration: todo.completed ? 'line-through' : 'none',
-                      color: todo.completed ? '#8c8c8c' : '#404040',
-                      marginBottom: '4px',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                    }}>
-                      {todo.title}
-                    </div>
-                    {todo.description && (
-                      <div style={{ marginBottom: '8px', color: '#8c8c8c', fontSize: '14px' }}>
-                        {todo.description}
+                    {inlineEditId === todo.id && !todo.completed ? (
+                      <div style={{ marginBottom: '12px' }}>
+                        <Input
+                          value={inlineEditTitle}
+                          onChange={(e) => setInlineEditTitle(e.target.value)}
+                          placeholder="输入任务标题"
+                          style={{ marginBottom: '8px' }}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleSaveInlineEdit(todo);
+                            } else if (e.key === 'Escape') {
+                              handleCancelInlineEdit();
+                            }
+                          }}
+                        />
+                        <Input.TextArea
+                          value={inlineEditDescription}
+                          onChange={(e) => setInlineEditDescription(e.target.value)}
+                          placeholder="输入任务描述"
+                          rows={2}
+                          style={{ marginBottom: '8px' }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              handleCancelInlineEdit();
+                            }
+                          }}
+                        />
+                        <Space>
+                          <Button
+                            type="primary"
+                            size="small"
+                            onClick={() => handleSaveInlineEdit(todo)}
+                          >
+                            保存
+                          </Button>
+                          <Button
+                            size="small"
+                            onClick={handleCancelInlineEdit}
+                          >
+                            取消
+                          </Button>
+                        </Space>
                       </div>
+                    ) : (
+                      <>
+                        <div
+                          onClick={() => !todo.completed && handleStartInlineEdit(todo)}
+                          style={{
+                            textDecoration: todo.completed ? 'line-through' : 'none',
+                            color: todo.completed ? '#8c8c8c' : '#404040',
+                            marginBottom: '4px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            cursor: todo.completed ? 'default' : 'text',
+                            padding: '2px 4px',
+                            borderRadius: '2px',
+                            transition: 'background 0.2s',
+                            backgroundColor: !todo.completed ? 'transparent' : 'transparent',
+                          }}
+                          onMouseEnter={(e) => !todo.completed && (e.currentTarget.style.backgroundColor = '#f5f5f5')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          {todo.title}
+                        </div>
+                        {todo.description && (
+                          <div
+                            onClick={() => !todo.completed && handleStartInlineEdit(todo)}
+                            style={{
+                              marginBottom: '8px',
+                              color: '#8c8c8c',
+                              fontSize: '14px',
+                              cursor: todo.completed ? 'default' : 'text',
+                              padding: '2px 4px',
+                              borderRadius: '2px',
+                              transition: 'background 0.2s',
+                            }}
+                            onMouseEnter={(e) => !todo.completed && (e.currentTarget.style.backgroundColor = '#f5f5f5')}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                          >
+                            {todo.description}
+                          </div>
+                        )}
+                      </>
                     )}
                     <Space size={[8, 8]} wrap>
                       {todo.dueDate && (
