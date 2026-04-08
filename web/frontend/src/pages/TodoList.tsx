@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Tag, Button, Checkbox, Space, Empty, Spin, Segmented, Input } from 'antd';
+import { Card, Tag, Button, Checkbox, Space, Empty, Spin, Segmented, Input, Select, DatePicker } from 'antd';
 import { PlusOutlined, CalendarOutlined, ClockCircleOutlined, EditOutlined, DeleteOutlined, InboxOutlined } from '@ant-design/icons';
 import { Todo, TodoList, Tag as TagType } from '../types';
 import { apiClient } from '../utils/api';
 import { formatDate } from '../utils/dateUtils';
 import toast from 'react-hot-toast';
 import TodoModal from '../components/TodoModal';
+import dayjs from 'dayjs';
 
 const TodoListPage: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -19,6 +20,10 @@ const TodoListPage: React.FC = () => {
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
   const [inlineEditTitle, setInlineEditTitle] = useState('');
   const [inlineEditDescription, setInlineEditDescription] = useState('');
+  const [inlineEditDueDate, setInlineEditDueDate] = useState<any>(null);
+  const [inlineEditStartTime, setInlineEditStartTime] = useState('');
+  const [inlineEditEndTime, setInlineEditEndTime] = useState('');
+  const [inlineEditPriority, setInlineEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
 
   useEffect(() => {
     fetchTodos();
@@ -156,6 +161,10 @@ const TodoListPage: React.FC = () => {
     setInlineEditId(todo.id);
     setInlineEditTitle(todo.title);
     setInlineEditDescription(todo.description || '');
+    setInlineEditDueDate(todo.dueDate ? new Date(todo.dueDate) : null);
+    setInlineEditStartTime(todo.startTime || '');
+    setInlineEditEndTime(todo.endTime || '');
+    setInlineEditPriority(todo.priority as 'low' | 'medium' | 'high');
   };
 
   const handleSaveInlineEdit = async (todo: Todo) => {
@@ -167,6 +176,10 @@ const TodoListPage: React.FC = () => {
       const response = await apiClient.updateTodo(todo.id, {
         title: inlineEditTitle,
         description: inlineEditDescription,
+        dueDate: inlineEditDueDate ? new Date(inlineEditDueDate).toISOString().split('T')[0] : undefined,
+        startTime: inlineEditStartTime || undefined,
+        endTime: inlineEditEndTime || undefined,
+        priority: inlineEditPriority,
       });
       if (response.success && response.data) {
         setTodos(todos.map(t => t.id === todo.id ? response.data! : t));
@@ -177,9 +190,7 @@ const TodoListPage: React.FC = () => {
     } catch (error) {
       toast.error('更新失败');
     } finally {
-      setInlineEditId(null);
-      setInlineEditTitle('');
-      setInlineEditDescription('');
+      handleCancelInlineEdit();
     }
   };
 
@@ -187,6 +198,10 @@ const TodoListPage: React.FC = () => {
     setInlineEditId(null);
     setInlineEditTitle('');
     setInlineEditDescription('');
+    setInlineEditDueDate(null);
+    setInlineEditStartTime('');
+    setInlineEditEndTime('');
+    setInlineEditPriority('medium');
   };
 
   if (loading) {
@@ -294,6 +309,38 @@ const TodoListPage: React.FC = () => {
                             }
                           }}
                         />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                          <DatePicker
+                            value={inlineEditDueDate ? dayjs(inlineEditDueDate) : null}
+                            onChange={(date) => setInlineEditDueDate(date)}
+                            placeholder="选择截止日期"
+                            style={{ width: '100%' }}
+                          />
+                          <Select
+                            value={inlineEditPriority}
+                            onChange={(value) => setInlineEditPriority(value)}
+                            options={[
+                              { label: '低', value: 'low' },
+                              { label: '中', value: 'medium' },
+                              { label: '高', value: 'high' },
+                            ]}
+                            placeholder="选择优先级"
+                          />
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                          <Input
+                            value={inlineEditStartTime}
+                            onChange={(e) => setInlineEditStartTime(e.target.value)}
+                            placeholder="开始时间 (如: 09:00)"
+                            type="text"
+                          />
+                          <Input
+                            value={inlineEditEndTime}
+                            onChange={(e) => setInlineEditEndTime(e.target.value)}
+                            placeholder="结束时间 (如: 17:00)"
+                            type="text"
+                          />
+                        </div>
                         <Space>
                           <Button
                             type="primary"
