@@ -282,7 +282,7 @@ const TodoListPage: React.FC = () => {
                   <Checkbox
                     checked={todo.completed}
                     onClick={(e) => handleToggleComplete(todo, e)}
-                    style={{ marginTop: '0px', marginRight: '12px', marginLeft: '0px' }}
+                    style={{ marginTop: '4px', marginRight: '12px', marginLeft: '0px', flexShrink: 0 }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {/* 标题 - 直接可编辑 */}
